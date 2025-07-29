@@ -693,17 +693,11 @@ def extract_body(data):
 
 
 def choice_useragent():
+    '''
+    完全没有必要搞太多，频繁换ua也是特征
+    '''
     user_agents = [
-       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/600.6.3 (KHTML, like Gecko) Version/8.0.6 Safari/600.6.3",
-       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/600.7.12 (KHTML, like Gecko) Version/7.1.7 Safari/537.85.16",
-       "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.124 Safari/537.36",
-       "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0",
-       "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.81 Safari/537.36",
-       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/600.7.11 (KHTML, like Gecko) Version/8.0.7 Safari/600.7.11",
-       "Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0",
-       "Mozilla/5.0 (Windows NT 6.1; rv:38.0) Gecko/20100101 Firefox/38.0",
-       "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:38.0) Gecko/20100101 Firefox/38.0",
-       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:38.0) Gecko/20100101 Firefox/38.0"
+       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.5938.63 Safari/537.36"
     ]
     return random.choice(user_agents)
 
@@ -840,6 +834,7 @@ if __name__ == '__main__':
 
     BASICCHECKSTRING = ('<!-- ' + rand.rand_value() + ' -->').encode()
 
+    # 连接
     if 'url' in args:
         # neoreg connect
         if args.v > 3:
@@ -864,7 +859,19 @@ if __name__ == '__main__':
         urls = args.url
         redirect_urls = args.redirect_url
 
-        HEADERS = {}
+        #添加几个拟人的header
+        HEADERS = {
+            "Cache-Control":"max-age=0",
+            "sec-ch-ua": "\"Chromium\";v=\"117\", \"Not;A=Brand\";v=\"8\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "macOS",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-User": "?1",
+            "Sec-Fetch-Dest": "document",
+            "Accept-Language": "zh-CN,zh;q=0.9"
+        }
         for header in args.header:
             if ':' in header:
                 key, value = header.split(':', 1)
@@ -906,10 +913,11 @@ if __name__ == '__main__':
             conn.headers['User-Agent'] = USERAGENT
 
             servSock_start = False
-            askNeoGeorg(conn, urls, redirect_urls, args.force_redirect)
+            # sb method
+            # askNeoGeorg(conn, urls, redirect_urls, args.force_redirect)
 
-            if 'Content-type' not in HEADERS:
-                HEADERS['Content-type'] = 'application/octet-stream'
+            if 'Content-type' not in HEADERS and 'Content-Type' not in HEADERS:
+                HEADERS['Content-type'] = 'text/html'
 
             READBUFSIZE   = min(args.read_buff, 50) * 1024
             MAXTHERADS    = args.max_threads
@@ -955,6 +963,7 @@ if __name__ == '__main__':
         finally:
             if servSock_start:
                 servSock.close()
+    # 生成
     else:
         # neoreg server generate
         print(banner)
@@ -1003,7 +1012,7 @@ if __name__ == '__main__':
         for filename in os.listdir(script_dir):
             outfile = os.path.join(outdir, filename)
             filepath = os.path.join(script_dir, filename)
-            if os.path.isfile(filepath) and filename.startswith('tunnel.'):
+            if os.path.isfile(filepath) and "tunnel." in filename:
                 text = file_read(filepath)
                 text = text.replace(r"NeoGeorg says, 'All seems fine'", neoreg_hello)
                 text = re.sub(r"BASE64 CHARSLIST", M_BASE64CHARS, text)
